@@ -1,5 +1,5 @@
 import { holdings } from './holdings';
-import type { Fundamentals, Portfolio, Quote, Row, Sector, Totals } from './types';
+import type { Fundamentals, Portfolio, Quote, RateLimit, Row, Sector, Totals } from './types';
 
 export type Resolved<T> = { value: T } | { error: string };
 
@@ -10,11 +10,16 @@ function totalsOf(rows: Row[]): Totals {
   return { investment, presentValue, gainLoss, gainLossPct: investment ? gainLoss / investment : 0 };
 }
 
+export type Feed = {
+  fetchedAt: Date;
+  stale: boolean;
+  rateLimit: RateLimit | null;
+};
+
 export function buildPortfolio(
   quotes: Map<string, Resolved<Quote>>,
   fundamentals: Map<string, Resolved<Fundamentals>>,
-  fetchedAt: Date,
-  stale: boolean,
+  feed: Feed,
 ): Portfolio {
   const totalInvestment = holdings.reduce((sum, h) => sum + h.purchasePrice * h.qty, 0);
 
@@ -24,9 +29,10 @@ export function buildPortfolio(
     const f = fundamentals.get(h.google);
     const quote = q && 'value' in q ? q.value : null;
     const fund = f && 'value' in f ? f.value : null;
-    const cmp = quote?.cmp ?? null;
+    const cmp = quote?.cmp ?? fund?.price ?? null;
     const presentValue = cmp === null ? null : cmp * h.qty;
     const prev = quote?.previousClose;
+    const priceSource = quote?.cmp != null ? 'yahoo' : fund?.price != null ? 'google' : null;
 
     return {
       ...h,
@@ -41,6 +47,7 @@ export function buildPortfolio(
       eps: fund?.eps ?? null,
       lastReport: fund?.lastReport ?? null,
       fiscalPeriod: fund?.fiscalPeriod ?? null,
+      priceSource,
       quoteError: q && 'error' in q ? q.error : null,
       fundamentalsError: f && 'error' in f ? f.error : null,
     };
@@ -63,8 +70,9 @@ export function buildPortfolio(
   return {
     sectors,
     totals: totalsOf(rows),
-    fetchedAt: fetchedAt.toISOString(),
-    stale,
+    fetchedAt: feed.fetchedAt.toISOString(),
+    stale: feed.stale,
+    rateLimit: feed.rateLimit,
     failures: rows.filter((r) => r.cmp === null).length,
   };
 }

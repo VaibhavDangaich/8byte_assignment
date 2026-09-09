@@ -1,29 +1,23 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Fraunces, Inter } from 'next/font/google';
+import Backdrop from '@/components/Backdrop';
+import './globals.css';
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+const inter = Inter({ variable: '--font-inter', subsets: ['latin'] });
+const fraunces = Fraunces({ variable: '--font-fraunces', subsets: ['latin'], axes: ['SOFT', 'WONK'] });
 
 export const metadata: Metadata = {
-  title: "Portfolio Dashboard",
-  description: "Live portfolio tracking with sector-level performance",
+  title: 'Portfolio',
+  description: 'Live holdings, sector performance and return dispersion',
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: LayoutProps<'/'>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">{children}</body>
+    <html lang="en" className={`${inter.variable} ${fraunces.variable} h-full`}>
+      <body className="min-h-full">
+        <Backdrop />
+        {children}
+      </body>
     </html>
   );
 }

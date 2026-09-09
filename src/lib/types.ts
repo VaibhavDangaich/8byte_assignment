@@ -15,6 +15,7 @@ export type Quote = {
 };
 
 export type Fundamentals = {
+  price: number | null;
   peRatio: number | null;
   eps: number | null;
   lastReport: string | null;
@@ -33,6 +34,7 @@ export type Row = Holding & {
   eps: number | null;
   lastReport: string | null;
   fiscalPeriod: string | null;
+  priceSource: 'yahoo' | 'google' | null;
   quoteError: string | null;
   fundamentalsError: string | null;
 };
@@ -50,10 +52,16 @@ export type Sector = Totals & {
   weight: number;
 };
 
+export type RateLimit = {
+  retryAt: string;
+  seconds: number;
+};
+
 export type Portfolio = {
   sectors: Sector[];
   totals: Totals;
   fetchedAt: string;
   stale: boolean;
   failures: number;
+  rateLimit: RateLimit | null;
 };

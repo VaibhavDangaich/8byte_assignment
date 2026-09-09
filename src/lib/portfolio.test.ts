@@ -19,7 +19,11 @@ const quote = (cmp: number): Resolved<Quote> => ({
 });
 
 const build = (quotes: Map<string, Resolved<Quote>>) =>
-  buildPortfolio(quotes, new Map<string, Resolved<Fundamentals>>(), new Date(0), false);
+  buildPortfolio(quotes, new Map<string, Resolved<Fundamentals>>(), {
+    fetchedAt: new Date(0),
+    stale: false,
+    rateLimit: null,
+  });
 
 test('investment and weights reconcile with the source spreadsheet', () => {
   const p = build(new Map(holdings.map((h) => [h.yahoo, quote(h.purchasePrice)])));
