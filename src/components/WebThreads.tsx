@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { Mesh, Program, Renderer, Triangle } from 'ogl';
+import { useEffect, useRef } from "react";
+import { Mesh, Program, Renderer, Triangle } from "ogl";
 
 const hexToRgb = (hex: string): [number, number, number] => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -148,7 +148,7 @@ type WebThreadsProps = {
   spread?: number;
   taper?: number;
   position?: number;
-  fanMode?: 'center' | 'left' | 'right';
+  fanMode?: "center" | "left" | "right";
   glow?: number;
   falloff?: number;
   thickness?: number;
@@ -166,16 +166,16 @@ type WebThreadsProps = {
 };
 
 export default function WebThreads({
-  color1 = '#5227FF',
-  color2 = '#FF9FFC',
-  color3 = '#FFFFFF',
+  color1 = "#5227FF",
+  color2 = "#FF9FFC",
+  color3 = "#FFFFFF",
   speed = 0.2,
   threadCount = 6,
   frequency = 5.0,
   spread = 0.18,
   taper = 1.0,
   position = 0.5,
-  fanMode = 'center',
+  fanMode = "center",
   glow = 0.02,
   falloff = 0.6,
   thickness = 1.1,
@@ -187,75 +187,96 @@ export default function WebThreads({
   grainIntensity = 0.05,
   mouseInteraction = true,
   mouseStrength = 0.3,
-  backgroundColor = '#FFFFFF',
+  backgroundColor = "#FFFFFF",
   lightMode = false,
-  className = '',
+  className = "",
 }: WebThreadsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const programRef = useRef<Program | null>(null);
-  const settings = useRef({ enabled: mouseInteraction, strength: mouseStrength });
+  const settings = useRef({
+    enabled: mouseInteraction,
+    strength: mouseStrength,
+  });
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const renderer = new Renderer({
-      webgl: 2,
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: false,
-      dpr: Math.min(window.devicePixelRatio || 1, 2),
-    });
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        webgl: 2,
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: false,
+        dpr: Math.min(window.devicePixelRatio || 1, 2),
+      });
+    } catch {
+      return;
+    }
 
     const gl = renderer.gl;
+    if (!gl) return;
     gl.clearColor(0, 0, 0, 0);
     const canvas = gl.canvas;
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.display = 'block';
+    canvas.style.width = "100%";
+    canvas.style.height = "100%";
+    canvas.style.display = "block";
     container.appendChild(canvas);
 
-    const program = new Program(gl, {
-      vertex,
-      fragment,
-      uniforms: {
-        iTime: { value: 0 },
-        iResolution: { value: new Float32Array([1, 1]) },
-        uSpeed: { value: speed },
-        uThreadCount: { value: Math.round(threadCount) },
-        uFrequency: { value: frequency },
-        uSpread: { value: spread },
-        uTaper: { value: taper },
-        uPosition: { value: position },
-        uFanMode: { value: FAN_MODE[fanMode] ?? 0 },
-        uGlow: { value: glow },
-        uFalloff: { value: falloff },
-        uThickness: { value: thickness },
-        uBrightness: { value: brightness },
-        uOpacity: { value: opacity },
-        uMirror: { value: mirror ? 1 : 0 },
-        uShimmer: { value: shimmer ? 1 : 0 },
-        uGrain: { value: grain ? 1 : 0 },
-        uGrainIntensity: { value: grainIntensity },
-        uColor1: { value: new Float32Array(hexToRgb(color1)) },
-        uColor2: { value: new Float32Array(hexToRgb(color2)) },
-        uColor3: { value: new Float32Array(hexToRgb(color3)) },
-        uBackgroundColor: { value: new Float32Array(hexToRgb(backgroundColor)) },
-        uLightMode: { value: lightMode },
-        uMouse: { value: new Float32Array([0.5, 0.5]) },
-        uMouseStrength: { value: mouseStrength },
-        uEnableMouse: { value: mouseInteraction ? 1 : 0 },
-        uMouseActive: { value: 0 },
-      },
-    });
+    let program: Program;
+    let mesh: Mesh;
+    try {
+      program = new Program(gl, {
+        vertex,
+        fragment,
+        uniforms: {
+          iTime: { value: 0 },
+          iResolution: { value: new Float32Array([1, 1]) },
+          uSpeed: { value: speed },
+          uThreadCount: { value: Math.round(threadCount) },
+          uFrequency: { value: frequency },
+          uSpread: { value: spread },
+          uTaper: { value: taper },
+          uPosition: { value: position },
+          uFanMode: { value: FAN_MODE[fanMode] ?? 0 },
+          uGlow: { value: glow },
+          uFalloff: { value: falloff },
+          uThickness: { value: thickness },
+          uBrightness: { value: brightness },
+          uOpacity: { value: opacity },
+          uMirror: { value: mirror ? 1 : 0 },
+          uShimmer: { value: shimmer ? 1 : 0 },
+          uGrain: { value: grain ? 1 : 0 },
+          uGrainIntensity: { value: grainIntensity },
+          uColor1: { value: new Float32Array(hexToRgb(color1)) },
+          uColor2: { value: new Float32Array(hexToRgb(color2)) },
+          uColor3: { value: new Float32Array(hexToRgb(color3)) },
+          uBackgroundColor: {
+            value: new Float32Array(hexToRgb(backgroundColor)),
+          },
+          uLightMode: { value: lightMode },
+          uMouse: { value: new Float32Array([0.5, 0.5]) },
+          uMouseStrength: { value: mouseStrength },
+          uEnableMouse: { value: mouseInteraction ? 1 : 0 },
+          uMouseActive: { value: 0 },
+        },
+      });
+      mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
+    } catch {
+      canvas.remove();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
+      return;
+    }
     programRef.current = program;
-
-    const mesh = new Mesh(gl, { geometry: new Triangle(gl), program });
 
     const setSize = () => {
       const rect = container.getBoundingClientRect();
-      renderer.setSize(Math.max(1, Math.floor(rect.width)), Math.max(1, Math.floor(rect.height)));
+      renderer.setSize(
+        Math.max(1, Math.floor(rect.width)),
+        Math.max(1, Math.floor(rect.height)),
+      );
       const res = program.uniforms.iResolution.value as Float32Array;
       res[0] = gl.drawingBufferWidth;
       res[1] = gl.drawingBufferHeight;
@@ -281,8 +302,8 @@ export default function WebThreads({
     const onMouseLeave = () => {
       targetActive = 0;
     };
-    window.addEventListener('mousemove', onMouseMove, { passive: true });
-    document.addEventListener('mouseleave', onMouseLeave);
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    document.addEventListener("mouseleave", onMouseLeave);
 
     let raf = 0;
     let onScreen = true;
@@ -305,7 +326,8 @@ export default function WebThreads({
     };
 
     const play = () => {
-      if (onScreen && pageVisible && raf === 0) raf = requestAnimationFrame(loop);
+      if (onScreen && pageVisible && raf === 0)
+        raf = requestAnimationFrame(loop);
     };
     const pause = () => {
       if (raf !== 0) {
@@ -329,19 +351,19 @@ export default function WebThreads({
       if (pageVisible) play();
       else pause();
     };
-    document.addEventListener('visibilitychange', onVisibility);
+    document.addEventListener("visibilitychange", onVisibility);
     play();
 
     return () => {
       pause();
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
-      document.removeEventListener('visibilitychange', onVisibility);
-      window.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseleave', onMouseLeave);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseleave", onMouseLeave);
       programRef.current = null;
       canvas.remove();
-      gl.getExtension('WEBGL_lose_context')?.loseContext();
+      gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
   }, []);
 
@@ -349,5 +371,10 @@ export default function WebThreads({
     settings.current = { enabled: mouseInteraction, strength: mouseStrength };
   }, [mouseInteraction, mouseStrength]);
 
-  return <div ref={containerRef} className={`relative h-full w-full overflow-hidden ${className}`} />;
+  return (
+    <div
+      ref={containerRef}
+      className={`relative h-full w-full overflow-hidden ${className}`}
+    />
+  );
 }

@@ -1,6 +1,7 @@
-import ParticleText from './ParticleText';
+import Decorative from "./Decorative";
+import ParticleText from "./ParticleText";
 
-const Shimmer = ({ className = '' }: { className?: string }) => (
+const Shimmer = ({ className = "" }: { className?: string }) => (
   <div className={`shimmer rounded bg-white/[0.07] ${className}`} />
 );
 
@@ -17,31 +18,35 @@ export default function Skeleton() {
 
       <header className="relative overflow-hidden rounded-xl border border-white/10 bg-surface/75 shadow-2xl shadow-black/40 backdrop-blur-xl">
         <div className="px-6 py-8 sm:px-8 sm:py-10">
-          <ParticleText
-            text="Portfolio"
-            className="font-display h-28 w-full sm:h-40"
-            fontSize="clamp(3.5rem, 13vw, 9rem)"
-            fontWeight={700}
-            fontFamily="inherit"
-            color="#ffffff"
-            highlightColor="#a78bfa"
-            particleSize={2.4}
-            density={3}
-            scatter={190}
-            gatherDuration={1700}
-            stagger={430}
-            idleDrift={0.6}
-            trigger="mount"
-            glow
-          />
+          <Decorative>
+            <ParticleText
+              text="Portfolio"
+              className="font-display h-28 w-full sm:h-40"
+              fontSize="clamp(3.5rem, 13vw, 9rem)"
+              fontWeight={700}
+              fontFamily="inherit"
+              color="#ffffff"
+              highlightColor="#a78bfa"
+              particleSize={2.4}
+              density={3}
+              scatter={190}
+              gatherDuration={1700}
+              stagger={430}
+              idleDrift={0.6}
+              trigger="mount"
+              glow
+            />
+          </Decorative>
 
-          <p className="mt-2 text-xs text-ink-soft">reaching Yahoo and Google Finance</p>
+          <p className="mt-2 text-xs text-ink-soft">
+            reaching Yahoo and Google Finance
+          </p>
 
           <Shimmer className="mt-4 h-14 w-72 max-w-full" />
           <Shimmer className="mt-3 h-7 w-44" />
 
           <dl className="mt-8 grid grid-cols-2 gap-x-8 gap-y-5 border-t border-white/10 pt-6 sm:grid-cols-4">
-            {['Invested', 'Holdings', 'Sectors', 'Return'].map((label) => (
+            {["Invested", "Holdings", "Sectors", "Return"].map((label) => (
               <div key={label}>
                 <dt className="text-[11px] font-medium tracking-[0.14em] text-ink-soft uppercase">
                   {label}
@@ -56,7 +61,7 @@ export default function Skeleton() {
       </header>
 
       <section className="grid gap-4 lg:grid-cols-2">
-        {['Allocation by sector', 'Return by sector'].map((title) => (
+        {["Allocation by sector", "Return by sector"].map((title) => (
           <Panel key={title}>
             <h3 className="text-[11px] font-semibold tracking-[0.16em] text-ink-soft uppercase">
               {title}
