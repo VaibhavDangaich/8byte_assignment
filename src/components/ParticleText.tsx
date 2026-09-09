@@ -230,7 +230,8 @@ export default function ParticleText({
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
       const computed = window.getComputedStyle(container);
-      const resolvedFamily = fontFamily === 'inherit' ? computed.fontFamily || 'sans-serif' : fontFamily;
+      const requested = fontFamily === 'inherit' ? computed.fontFamily : fontFamily;
+      const resolvedFamily = !requested || requested.includes('var(') ? 'sans-serif' : requested;
       let resolvedSize = resolveFontSize(fontSize, container, fontWeight, resolvedFamily);
       let font = `${fontWeight} ${resolvedSize}px ${resolvedFamily}`;
 

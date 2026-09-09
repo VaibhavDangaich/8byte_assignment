@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Charts from '@/components/Charts';
+import Skeleton from '@/components/Skeleton';
 import FeedNotice from '@/components/FeedNotice';
 import PortfolioTable from '@/components/PortfolioTable';
 import Summary from '@/components/Summary';
@@ -19,7 +20,7 @@ export default function Page() {
     if (loading.current) return;
     loading.current = true;
     try {
-      const res = await fetch('/api/portfolio');
+      const res = await fetch('/api/portfolio', { signal: AbortSignal.timeout(30_000) });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error ?? `request failed with ${res.status}`);
       setPortfolio(body as Portfolio);
@@ -47,15 +48,16 @@ export default function Page() {
 
   if (!portfolio) {
     return (
-      <main className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
-        {error ? (
-          <div className="rounded-lg border border-loss/30 bg-loss-wash/70 px-4 py-3 backdrop-blur-xl text-sm">
+      <main className="mx-auto max-w-6xl px-4 py-8 sm:px-8 sm:py-12">
+        {error && (
+          <div className="mb-6 rounded-lg border border-loss/30 bg-loss-wash/70 px-4 py-3 text-sm backdrop-blur-xl">
             <p className="font-medium text-loss">Could not reach the price feed.</p>
-            <p className="mt-1 text-ink-soft">{error}. Retrying in {nextPoll}s.</p>
+            <p className="mt-1 text-ink-soft">
+              {error}. Trying again in {nextPoll}s.
+            </p>
           </div>
-        ) : (
-          <p className="text-sm text-ink-soft">Loading holdings…</p>
         )}
+        <Skeleton />
       </main>
     );
   }

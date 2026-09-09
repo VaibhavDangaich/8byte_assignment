@@ -29,10 +29,10 @@ export default function Summary({
         <h1 className="sr-only">Portfolio</h1>
         <ParticleText
           text="Portfolio"
-          className="h-28 w-full sm:h-40"
+          className="font-display h-28 w-full sm:h-40"
           fontSize="clamp(3.5rem, 13vw, 9rem)"
           fontWeight={700}
-          fontFamily="var(--font-fraunces), Georgia, serif"
+          fontFamily="inherit"
           color="#ffffff"
           highlightColor="#a78bfa"
           particleSize={2.4}

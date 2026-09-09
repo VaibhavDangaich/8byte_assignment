@@ -40,8 +40,16 @@ body {
 
 .settle { animation: settle 1.2s ease-out; }
 
+@keyframes shimmer {
+  0% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+  100% { opacity: 0.45; }
+}
+
+.shimmer { animation: shimmer 1.6s ease-in-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
-  .settle { animation: none; }
+  .settle, .shimmer { animation: none; }
 }
 
 :focus-visible {

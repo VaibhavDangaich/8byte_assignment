@@ -13,6 +13,7 @@ const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
 const TTL_FAST_MS = 12_000;
+const BOOTSTRAP_WAIT_MS = 2_500;
 const TTL_PAGE_MS = 60_000;
 const FALLBACK_CONCURRENCY = 2;
 const PAGE_CONCURRENCY = 4;
@@ -207,11 +208,17 @@ async function load() {
 
 export async function getQuotes() {
   const now = Date.now();
-  if (now - fetchedAt >= ttl && now >= retryAfter) {
-    inflight ??= load().finally(() => {
+  if (now - fetchedAt >= ttl && now >= retryAfter && !inflight) {
+    inflight = load().finally(() => {
       inflight = null;
     });
-    await inflight;
+  }
+
+  if (store.size === 0 && inflight) {
+    await Promise.race([
+      inflight,
+      new Promise((resolve) => setTimeout(resolve, BOOTSTRAP_WAIT_MS)),
+    ]);
   }
 
   const waiting = retryAfter - Date.now();
