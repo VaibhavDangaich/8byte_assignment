@@ -68,10 +68,6 @@ export default function Page() {
       <FeedNotice portfolio={portfolio} retryIn={nextPoll} error={error} />
       <Charts portfolio={portfolio} />
       <PortfolioTable portfolio={portfolio} />
-      <footer className="border-t border-white/10 pt-4 text-xs leading-relaxed text-ink-soft">
-        Prices come from unofficial Yahoo Finance endpoints; P/E and earnings are read off Google
-        Finance pages. Both are delayed and unverified. Not investment advice.
-      </footer>
     </main>
   );
 }
