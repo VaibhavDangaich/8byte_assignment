@@ -1,5 +1,7 @@
 # Portfolio Dashboard
 
+Live: https://portfolio-dashboard-vaibhav.vercel.app
+
 A live dashboard for a 26 holding Indian equity portfolio. Purchase prices and quantities come
 from the supplied spreadsheet; current market price comes from Yahoo Finance, and P/E plus latest
 earnings come from Google Finance. Holdings are grouped into six sectors with per sector subtotals,
@@ -64,6 +66,11 @@ fallback path is in use, since that path is much more expensive. Fundamentals ar
 
 If Yahoo starts rate limiting, the dashboard says so and shows a countdown to the next attempt
 rather than silently freezing. It keeps polling and recovers on its own.
+
+On Vercel the cache lives in the memory of a single serverless instance, so a cold start begins
+empty. `after()` from `next/server` keeps the background refresh running once the response has
+been sent, which is what lets the following request serve a full set of prices. A shared cache
+such as Vercel KV would be the next step if this were more than a demo.
 
 ## Project layout
 
