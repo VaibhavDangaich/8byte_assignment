@@ -41,7 +41,6 @@ async function fetchFundamentals(symbol: string): Promise<Fundamentals> {
     ),
     peRatio: amount(field(html, 'P/E ratio')),
     eps: amount(field(html, 'EPS')),
-    lastReport: field(html, 'Last report'),
     fiscalPeriod: field(html, 'Fiscal period'),
   };
 }

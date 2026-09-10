@@ -15,7 +15,7 @@ const SHEET_INVESTMENT: Record<string, number> = {
 const SHEET_TOTAL = 1543060;
 
 const quote = (cmp: number): Resolved<Quote> => ({
-  value: { cmp, previousClose: cmp, currency: 'INR' },
+  value: { cmp },
 });
 
 const build = (quotes: Map<string, Resolved<Quote>>) =>

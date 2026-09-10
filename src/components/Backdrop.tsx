@@ -18,7 +18,6 @@ export default function Backdrop() {
         thickness={1.1}
         brightness={0.5}
         opacity={0.6}
-        grain
         grainIntensity={0.03}
         mouseInteraction
         mouseStrength={0.3}

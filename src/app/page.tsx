@@ -35,16 +35,13 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    load();
-    const tick = setInterval(() => {
-      setNextPoll((seconds) => {
-        if (seconds > 1) return seconds - 1;
-        load();
-        return REFRESH_SECONDS;
-      });
-    }, 1000);
+    const tick = setInterval(() => setNextPoll((seconds) => Math.max(seconds - 1, 0)), 1000);
     return () => clearInterval(tick);
-  }, [load]);
+  }, []);
+
+  useEffect(() => {
+    if (nextPoll === 0 || portfolio === null) load();
+  }, [nextPoll, portfolio, load]);
 
   if (!portfolio) {
     return (

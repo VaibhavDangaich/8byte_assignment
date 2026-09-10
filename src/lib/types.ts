@@ -10,15 +10,12 @@ export type Holding = {
 
 export type Quote = {
   cmp: number;
-  previousClose: number | null;
-  currency: string;
 };
 
 export type Fundamentals = {
   price: number | null;
   peRatio: number | null;
   eps: number | null;
-  lastReport: string | null;
   fiscalPeriod: string | null;
 };
 
@@ -29,10 +26,8 @@ export type Row = Holding & {
   presentValue: number | null;
   gainLoss: number | null;
   gainLossPct: number | null;
-  dayChangePct: number | null;
   peRatio: number | null;
   eps: number | null;
-  lastReport: string | null;
   fiscalPeriod: string | null;
   priceSource: 'yahoo' | 'google' | null;
   quoteError: string | null;

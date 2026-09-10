@@ -31,7 +31,6 @@ export function buildPortfolio(
     const fund = f && 'value' in f ? f.value : null;
     const cmp = quote?.cmp ?? fund?.price ?? null;
     const presentValue = cmp === null ? null : cmp * h.qty;
-    const prev = quote?.previousClose;
     const priceSource = quote?.cmp != null ? 'yahoo' : fund?.price != null ? 'google' : null;
 
     return {
@@ -42,10 +41,8 @@ export function buildPortfolio(
       presentValue,
       gainLoss: presentValue === null ? null : presentValue - investment,
       gainLossPct: presentValue === null ? null : (presentValue - investment) / investment,
-      dayChangePct: cmp === null || !prev ? null : (cmp - prev) / prev,
       peRatio: fund?.peRatio ?? null,
       eps: fund?.eps ?? null,
-      lastReport: fund?.lastReport ?? null,
       fiscalPeriod: fund?.fiscalPeriod ?? null,
       priceSource,
       quoteError: q && 'error' in q ? q.error : null,

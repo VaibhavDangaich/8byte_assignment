@@ -27,15 +27,8 @@ class RateLimited extends Error {
 
 const headers = (extra?: HeadersInit) => ({ 'User-Agent': USER_AGENT, ...extra });
 
-function readQuote(raw: Record<string, unknown>): Quote | null {
-  const cmp = raw.regularMarketPrice;
-  if (typeof cmp !== 'number') return null;
-  return {
-    cmp,
-    previousClose:
-      typeof raw.regularMarketPreviousClose === 'number' ? raw.regularMarketPreviousClose : null,
-    currency: typeof raw.currency === 'string' ? raw.currency : 'INR',
-  };
+function readPrice(value: unknown): Quote | null {
+  return typeof value === 'number' ? { cmp: value } : null;
 }
 
 let session: { cookie: string; crumb: string } | null = null;
@@ -80,7 +73,7 @@ async function fetchBatch(symbols: string[]) {
 
   const quotes = new Map<string, Quote>();
   for (const raw of result) {
-    const quote = readQuote(raw);
+    const quote = readPrice(raw.regularMarketPrice);
     if (quote && typeof raw.symbol === 'string') quotes.set(raw.symbol, quote);
   }
   return quotes;
@@ -98,14 +91,9 @@ async function fetchOne(symbol: string): Promise<Quote> {
   if (!res.ok) throw new Error(`Yahoo Finance returned ${res.status}`);
 
   const meta = (await res.json())?.chart?.result?.[0]?.meta;
-  const quote = meta && {
-    regularMarketPrice: meta.regularMarketPrice,
-    regularMarketPreviousClose: meta.chartPreviousClose ?? meta.previousClose,
-    currency: meta.currency,
-  };
-  const parsed = quote && readQuote(quote);
-  if (!parsed) throw new Error('no price in Yahoo Finance response');
-  return parsed;
+  const quote = readPrice(meta?.regularMarketPrice);
+  if (!quote) throw new Error('no price in Yahoo Finance response');
+  return quote;
 }
 
 function readTag(html: string, testId: string) {
@@ -129,9 +117,7 @@ async function fetchFromPage(symbol: string): Promise<Quote> {
   const html = await res.text();
   const cmp = readTag(html, 'qsp-price');
   if (cmp === null) throw new Error('no price on Yahoo Finance page');
-
-  const change = readTag(html, 'qsp-price-change');
-  return { cmp, previousClose: change === null ? null : cmp - change, currency: 'INR' };
+  return { cmp };
 }
 
 const store = new Map<string, Resolved<Quote>>();

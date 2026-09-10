@@ -55,7 +55,6 @@ export default function Summary({
             pointerRepel={42}
             repelRadius={120}
             idleDrift={0.6}
-            trigger="mount"
             glow
           />
         </Decorative>

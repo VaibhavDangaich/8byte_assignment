@@ -13,8 +13,6 @@ const hexToRgb = (hex: string): [number, number, number] => {
   ];
 };
 
-const FAN_MODE: Record<string, number> = { center: 0, left: 1, right: 2 };
-
 const vertex = `#version 300 es
 in vec2 position;
 void main() {
@@ -32,21 +30,15 @@ uniform float uFrequency;
 uniform float uSpread;
 uniform float uTaper;
 uniform float uPosition;
-uniform float uFanMode;
 uniform float uGlow;
 uniform float uFalloff;
 uniform float uThickness;
 uniform float uBrightness;
 uniform float uOpacity;
-uniform float uMirror;
-uniform float uShimmer;
-uniform float uGrain;
 uniform float uGrainIntensity;
 uniform vec3 uColor1;
 uniform vec3 uColor2;
 uniform vec3 uColor3;
-uniform vec3 uBackgroundColor;
-uniform bool uLightMode;
 uniform vec2 uMouse;
 uniform float uMouseStrength;
 uniform float uEnableMouse;
@@ -64,7 +56,7 @@ void main() {
   vec2 uv = gl_FragCoord.xy / iResolution.xy;
   float n = max(uThreadCount, 1.0);
 
-  float pinchX = uFanMode < 0.5 ? 0.5 : (uFanMode < 1.5 ? 0.0 : 1.0);
+  float pinchX = 0.5;
   if (uEnableMouse > 0.5) {
     pinchX = mix(pinchX, uMouse.x, clamp(uMouseStrength, 0.0, 1.0) * uMouseActive);
   }
@@ -72,9 +64,7 @@ void main() {
   float spreadDx = uSpread * abs(uv.x - pinchX);
   float baseT = iTime * uSpeed;
   float tauOverN = TAU / n;
-  float mirror = uMirror > 0.5 ? sign(pinchX - uv.x) : 1.0;
-  bool doShimmer = uShimmer > 0.5;
-  float shimmerT = iTime * 1.7;
+  float mirror = sign(pinchX - uv.x);
   float invThickness = 1.0 / max(uThickness, 0.01);
   float xFreq = uv.x * uFrequency;
   float yOff = uv.y - uPosition;
@@ -88,8 +78,7 @@ void main() {
     if (i >= n) break;
 
     float amplitude = spreadDx * (1.0 + i * uTaper);
-    float shimmer = doShimmer ? sin(shimmerT + i * 1.3) * 0.35 : 0.0;
-    float phase = (baseT + i * tauOverN) * mirror + shimmer;
+    float phase = (baseT + i * tauOverN) * mirror;
 
     float sdf = abs(yOff + sin(xFreq + phase) * amplitude) * invThickness;
 
@@ -116,25 +105,11 @@ void main() {
 
   vec3 outRgb = col * alpha;
 
-  if (uGrain > 0.5) {
-    float gv = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233)) + iTime) * 43758.5453) - 0.5) * uGrainIntensity;
-    outRgb = clamp(outRgb + gv, 0.0, 1.0);
-    alpha = clamp(alpha + gv, 0.0, 1.0);
-  }
+float gv = (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233)) + iTime) * 43758.5453) - 0.5) * uGrainIntensity;
+  outRgb = clamp(outRgb + gv, 0.0, 1.0);
+  alpha = clamp(alpha + gv, 0.0, 1.0);
 
-  if (uLightMode) {
-    vec3 mapped = vec3(1.0) - exp(-max(col, vec3(0.0)) * 1.3);
-    float rawEnergy = clamp(max(mapped.r, max(mapped.g, mapped.b)) * uOpacity, 0.0, 1.0);
-    float coverage = smoothstep(0.18, 0.72, rawEnergy);
-    coverage *= coverage;
-    vec3 hue = mapped / max(max(mapped.r, max(mapped.g, mapped.b)), 1e-4);
-    vec3 chroma = pow(clamp(hue, 0.0, 1.0), vec3(0.78));
-    vec3 pigment = mix(chroma, vec3(0.08), 0.12);
-    vec3 ink = mix(vec3(0.9), pigment, 0.82 + coverage * 0.18);
-    fragColor = vec4(mix(uBackgroundColor, ink, coverage), 1.0);
-  } else {
-    fragColor = vec4(outRgb, alpha);
-  }
+  fragColor = vec4(outRgb, alpha);
 }
 `;
 
@@ -148,21 +123,14 @@ type WebThreadsProps = {
   spread?: number;
   taper?: number;
   position?: number;
-  fanMode?: "center" | "left" | "right";
   glow?: number;
   falloff?: number;
   thickness?: number;
   brightness?: number;
   opacity?: number;
-  mirror?: boolean;
-  shimmer?: boolean;
-  grain?: boolean;
   grainIntensity?: number;
   mouseInteraction?: boolean;
   mouseStrength?: number;
-  backgroundColor?: string;
-  lightMode?: boolean;
-  className?: string;
 };
 
 export default function WebThreads({
@@ -175,24 +143,16 @@ export default function WebThreads({
   spread = 0.18,
   taper = 1.0,
   position = 0.5,
-  fanMode = "center",
   glow = 0.02,
   falloff = 0.6,
   thickness = 1.1,
   brightness = 0.6,
   opacity = 1.0,
-  mirror = true,
-  shimmer = false,
-  grain = true,
   grainIntensity = 0.05,
   mouseInteraction = true,
   mouseStrength = 0.3,
-  backgroundColor = "#FFFFFF",
-  lightMode = false,
-  className = "",
 }: WebThreadsProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const programRef = useRef<Program | null>(null);
   const settings = useRef({
     enabled: mouseInteraction,
     strength: mouseStrength,
@@ -240,23 +200,15 @@ export default function WebThreads({
           uSpread: { value: spread },
           uTaper: { value: taper },
           uPosition: { value: position },
-          uFanMode: { value: FAN_MODE[fanMode] ?? 0 },
           uGlow: { value: glow },
           uFalloff: { value: falloff },
           uThickness: { value: thickness },
           uBrightness: { value: brightness },
           uOpacity: { value: opacity },
-          uMirror: { value: mirror ? 1 : 0 },
-          uShimmer: { value: shimmer ? 1 : 0 },
-          uGrain: { value: grain ? 1 : 0 },
           uGrainIntensity: { value: grainIntensity },
           uColor1: { value: new Float32Array(hexToRgb(color1)) },
           uColor2: { value: new Float32Array(hexToRgb(color2)) },
           uColor3: { value: new Float32Array(hexToRgb(color3)) },
-          uBackgroundColor: {
-            value: new Float32Array(hexToRgb(backgroundColor)),
-          },
-          uLightMode: { value: lightMode },
           uMouse: { value: new Float32Array([0.5, 0.5]) },
           uMouseStrength: { value: mouseStrength },
           uEnableMouse: { value: mouseInteraction ? 1 : 0 },
@@ -269,7 +221,6 @@ export default function WebThreads({
       gl.getExtension("WEBGL_lose_context")?.loseContext();
       return;
     }
-    programRef.current = program;
 
     const setSize = () => {
       const rect = container.getBoundingClientRect();
@@ -361,7 +312,6 @@ export default function WebThreads({
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseleave", onMouseLeave);
-      programRef.current = null;
       canvas.remove();
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
@@ -374,7 +324,7 @@ export default function WebThreads({
   return (
     <div
       ref={containerRef}
-      className={`relative h-full w-full overflow-hidden ${className}`}
+      className="relative h-full w-full overflow-hidden"
     />
   );
 }

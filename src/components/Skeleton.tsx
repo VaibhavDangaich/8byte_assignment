@@ -33,8 +33,7 @@ export default function Skeleton() {
               gatherDuration={1700}
               stagger={430}
               idleDrift={0.6}
-              trigger="mount"
-              glow
+                glow
             />
           </Decorative>
 

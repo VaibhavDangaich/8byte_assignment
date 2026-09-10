@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, type CSSProperties } from 'react';
+import { useEffect, useRef } from 'react';
 
 type Rgb = { r: number; g: number; b: number };
 
@@ -38,13 +38,11 @@ const clamp = (value: number, min: number, max: number) => Math.min(Math.max(val
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 function resolveFontSize(
-  value: number | string,
+  value: string,
   container: HTMLElement,
   fontWeight: number | string,
   fontFamily: string,
 ) {
-  if (typeof value === 'number') return value;
-
   const probe = document.createElement('span');
   probe.textContent = 'M';
   probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
@@ -77,13 +75,11 @@ type ParticleTextProps = {
   pointerRepel?: number;
   repelRadius?: number;
   idleDrift?: number;
-  trigger?: 'mount' | 'hover' | 'click';
-  fontSize?: number | string;
+  fontSize?: string;
   fontWeight?: number | string;
   fontFamily?: string;
   glow?: boolean;
   className?: string;
-  style?: CSSProperties;
 };
 
 export default function ParticleText({
@@ -98,13 +94,11 @@ export default function ParticleText({
   pointerRepel = 40,
   repelRadius = 120,
   idleDrift = 0.7,
-  trigger = 'mount',
   fontSize = 'clamp(3rem, 12vw, 8rem)',
   fontWeight = 800,
   fontFamily = 'inherit',
   glow = true,
   className = '',
-  style,
 }: ParticleTextProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -129,22 +123,13 @@ export default function ParticleText({
 
     const pointer = { active: false, x: 0, y: 0, smoothX: 0, smoothY: 0 };
 
-    const startGather = (fromScatter = true) => {
+    const startGather = () => {
       if (!particles.length) return;
-      const spread = reducedMotion ? 0 : scatter;
-
       for (const particle of particles) {
-        if (fromScatter) {
-          const angle = particle.seed * Math.PI * 2;
-          const distance = spread * (0.35 + particle.depth * 0.75);
-          particle.x = particle.targetX + Math.cos(angle) * distance + (particle.depth - 0.5) * spread * 0.55;
-          particle.y = particle.targetY + Math.sin(angle) * distance + (particle.seed - 0.5) * spread * 0.55;
-        }
         particle.startX = particle.x;
         particle.startY = particle.y;
         particle.delay = reducedMotion ? 0 : particle.seed * stagger;
       }
-
       gatherStart = performance.now();
       gathering = true;
     };
@@ -335,7 +320,7 @@ export default function ParticleText({
         }
         gathering = false;
       } else {
-        startGather(false);
+        startGather();
       }
 
       if (animationFrame === null) animationFrame = window.requestAnimationFrame(render);
@@ -355,14 +340,6 @@ export default function ParticleText({
     const handlePointerLeave = () => {
       pointer.active = false;
     };
-    const handlePointerEnter = (event: PointerEvent) => {
-      handlePointerMove(event);
-      if (trigger === 'hover') startGather(true);
-    };
-    const handleClick = () => {
-      if (trigger === 'click') startGather(true);
-    };
-
     const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const handleReduceMotionChange = (event: MediaQueryListEvent) => {
       reducedMotion = event.matches;
@@ -370,10 +347,8 @@ export default function ParticleText({
     };
 
     reduceMotionQuery.addEventListener('change', handleReduceMotionChange);
-    canvas.addEventListener('pointerenter', handlePointerEnter);
     canvas.addEventListener('pointermove', handlePointerMove);
     canvas.addEventListener('pointerleave', handlePointerLeave);
-    canvas.addEventListener('click', handleClick);
 
     const resizeObserver = new ResizeObserver(queueSample);
     resizeObserver.observe(container);
@@ -383,10 +358,8 @@ export default function ParticleText({
       buildId += 1;
       resizeObserver.disconnect();
       reduceMotionQuery.removeEventListener('change', handleReduceMotionChange);
-      canvas.removeEventListener('pointerenter', handlePointerEnter);
       canvas.removeEventListener('pointermove', handlePointerMove);
       canvas.removeEventListener('pointerleave', handlePointerLeave);
-      canvas.removeEventListener('click', handleClick);
       if (animationFrame !== null) window.cancelAnimationFrame(animationFrame);
       if (resizeFrame !== null) window.cancelAnimationFrame(resizeFrame);
     };
@@ -402,7 +375,6 @@ export default function ParticleText({
     pointerRepel,
     repelRadius,
     idleDrift,
-    trigger,
     fontSize,
     fontWeight,
     fontFamily,
@@ -413,7 +385,6 @@ export default function ParticleText({
     <div
       ref={containerRef}
       className={`relative block w-full touch-none overflow-hidden ${className}`}
-      style={style}
       aria-label={text}
     >
       <canvas ref={canvasRef} className="absolute inset-0 block h-full w-full" aria-hidden="true" />
