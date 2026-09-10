@@ -69,5 +69,5 @@ function refresh() {
 
 export function getFundamentals() {
   refresh();
-  return new Map(store);
+  return { fundamentals: new Map(store), pending: inflight };
 }

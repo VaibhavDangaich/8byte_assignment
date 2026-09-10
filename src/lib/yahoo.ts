@@ -224,6 +224,7 @@ export async function getQuotes() {
   const waiting = retryAfter - Date.now();
   return {
     quotes: new Map(store),
+    pending: inflight,
     feed: {
       fetchedAt: new Date(fetchedAt),
       stale: Date.now() - fetchedAt >= ttl,
